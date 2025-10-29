@@ -28,10 +28,18 @@ app.get("/", (req, res) => {
   res.send("Welcome to portfolio API");
 });
 
-app.listen(PORT, async () => {
-  console.log(`server is running on port http://localhost:${PORT}`);
+const startServer = async () => {
+  try {
+    await connectToDatabase(); // connect to MongoDB first
+    app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
+};
 
-  await connectToDatabase();
-});
+startServer();
 
 export default app;
