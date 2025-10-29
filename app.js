@@ -1,5 +1,5 @@
 import express from "express";
-import { PORT } from "./config/env.js";
+
 import userRouter from "./routes/user.routes.js";
 import subscriptionRouter from "./routes/subscription.routes.js";
 import authRouter from "./routes/auth.routes.js";
@@ -28,10 +28,20 @@ app.get("/", (req, res) => {
   res.send("Welcome to portfolio API");
 });
 
-app.listen(PORT, async () => {
-  console.log(`server is running on port http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3000;
 
-  await connectToDatabase();
-});
+const startServer = async () => {
+  try {
+    await connectToDatabase();
+    app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Failed to start server:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 export default app;
