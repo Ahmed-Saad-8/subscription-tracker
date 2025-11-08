@@ -8,6 +8,7 @@ import errorMiddleware from "./middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
+import productRouter from "./routes/product.routes.js";
 const app = express();
 
 app.use(express.json());
@@ -21,6 +22,8 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
 
 app.use("/api/v1/subscriptions", subscriptionRouter);
+
+app.use("/api/v1/products", productRouter);
 
 app.use(errorMiddleware);
 

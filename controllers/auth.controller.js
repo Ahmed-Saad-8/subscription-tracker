@@ -3,16 +3,35 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import { JWT_EXPIRES_IN, JWT_SECRET } from "../config/env.js";
+import cloudinary from "../config/cloudinaryConfig.js";
+import streamifier from "streamifier";
 
 export const signUp = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { name, email, password } = req.body;
+    const {
+      name,
+      email,
+      password,
+      confirmPassword,
+      mobile,
+      governorate,
+      city,
+      age,
+      gender,
+    } = req.body;
+
+    if (password !== confirmPassword) {
+      const error = new Error("Passwords do not match");
+      error.statusCode = 400;
+      throw error;
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      const error = new Error("User already exist");
+      const error = new Error("User already exists");
       error.statusCode = 409;
       throw error;
     }
@@ -20,28 +39,57 @@ export const signUp = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Upload image to Cloudinary if provided
+    let imageUrl = "";
+    if (req.file) {
+      const uploadResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "user_ids" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+      });
+
+      imageUrl = uploadResult.secure_url;
+    }
+
     const newUsers = await User.create(
-      [{ name, email, password: hashedPassword }],
-      {
-        session,
-      }
+      [
+        {
+          name,
+          email,
+          password: hashedPassword,
+          mobile,
+          governorate,
+          city,
+          age,
+          gender,
+          idImage: imageUrl,
+        },
+      ],
+      { session }
     );
 
     const token = jwt.sign({ userId: newUsers[0]._id }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
+
     await session.commitTransaction();
     session.endSession();
 
     res.status(201).json({
       success: true,
-      message: "user successfuly created",
+      message: "User successfully created",
       data: {
         token,
         user: newUsers[0],
       },
     });
   } catch (error) {
+    console.error("🔥 SIGN-UP ERROR:", error);
     await session.abortTransaction();
     session.endSession();
     next(error);
