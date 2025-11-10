@@ -25,6 +25,8 @@ app.use("/api/v1/subscriptions", subscriptionRouter);
 
 app.use("/api/v1/products", productRouter);
 
+app.use(cors({ origin: "*", credentials: true }));
+
 app.use(errorMiddleware);
 
 app.get("/", (req, res) => {
