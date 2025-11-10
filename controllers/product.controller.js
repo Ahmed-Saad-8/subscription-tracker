@@ -6,7 +6,6 @@ import streamifier from "streamifier";
 
 export const postProduct = async (req, res, next) => {
   try {
-    // 1️⃣ Check if all 4 required image files are present
     const { mainImage, firstImage, secondImage, thirdImage } = req.files;
     if (!mainImage || !firstImage || !secondImage || !thirdImage) {
       const error = new Error("All 4 product images are required");
@@ -14,7 +13,6 @@ export const postProduct = async (req, res, next) => {
       throw error;
     }
 
-    // 2️⃣ Helper function to upload a file buffer to Cloudinary using streamifier
     const uploadFromBuffer = (file) => {
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
@@ -28,16 +26,14 @@ export const postProduct = async (req, res, next) => {
       });
     };
 
-    // 3️⃣ Upload each image and get the secure URL
     const mainImageUrl = await uploadFromBuffer(mainImage[0]);
     const firstImageUrl = await uploadFromBuffer(firstImage[0]);
     const secondImageUrl = await uploadFromBuffer(secondImage[0]);
     const thirdImageUrl = await uploadFromBuffer(thirdImage[0]);
 
-    // 4️⃣ Build product data
     const productData = {
-      ...req.body, // name, description, pricePerHour, replacementValue, category, itemCondition, startDate, endDate
-      owner: req.user._id, // assign logged-in user as owner
+      ...req.body,
+      owner: req.user._id,
       email: req.user.email,
       mainImage: mainImageUrl,
       firstImage: firstImageUrl,
@@ -128,6 +124,22 @@ export const deleteProduct = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "Product and images successfully deleted",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getuserProducts = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+
+    const products = await Product.find({ owner: userId });
+
+    res.status(200).json({
+      success: true,
+      message: "User products fetched successfully",
+      data: products,
     });
   } catch (error) {
     next(error);

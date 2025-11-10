@@ -3,6 +3,7 @@ import {
   postProduct,
   getProducts,
   deleteProduct,
+  getuserProducts,
 } from "../controllers/product.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import authorize from "../middlewares/auth.middlewate.js";
@@ -22,6 +23,8 @@ productRouter.post(
 );
 
 productRouter.get("/getproduct", getProducts);
+
+productRouter.get("/product/:id", authorize, getuserProducts);
 
 productRouter.delete("/product/:id", authorize, deleteProduct);
 
