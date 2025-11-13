@@ -145,3 +145,101 @@ export const getuserProducts = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getProduct = async (req, res, next) => {
+  try {
+    const productId = req.params.id;
+
+    // 1️⃣ Find the product by ID
+    const product = await Product.findById(req.params.id).populate(
+      "owner",
+      "name email idImage"
+    );
+    res.json({ product });
+    if (!product) {
+      const error = new Error("Product not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    res.status(200).json({
+      status: "success",
+      results: product.length,
+      product,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateProduct = async (req, res) => {
+  try {
+    const productId = req.params.id;
+
+    // 1️⃣ Find the product
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // 2️⃣ Helper to upload images to Cloudinary
+    const uploadFromBuffer = (file) =>
+      new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "products" },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        streamifier.createReadStream(file.buffer).pipe(uploadStream);
+      });
+
+    // 3️⃣ Update images if provided
+    if (req.files) {
+      const { mainImage, firstImage, secondImage, thirdImage } = req.files;
+
+      if (mainImage && mainImage[0]) {
+        product.mainImage = await uploadFromBuffer(mainImage[0]);
+      }
+      if (firstImage && firstImage[0]) {
+        product.firstImage = await uploadFromBuffer(firstImage[0]);
+      }
+      if (secondImage && secondImage[0]) {
+        product.secondImage = await uploadFromBuffer(secondImage[0]);
+      }
+      if (thirdImage && thirdImage[0]) {
+        product.thirdImage = await uploadFromBuffer(thirdImage[0]);
+      }
+    }
+
+    // 4️⃣ Update text fields from req.body
+    const fields = [
+      "name",
+      "description",
+      "pricePerHour",
+      "replacementValue",
+      "category",
+      "itemCondition",
+      "startDate",
+      "endDate",
+      "city",
+    ];
+
+    fields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        product[field] = req.body[field];
+      }
+    });
+
+    // 5️⃣ Save product
+    await product.save();
+
+    return res.status(200).json({ status: "success", product });
+  } catch (error) {
+    console.error("💥 Update error:", error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+};

@@ -52,7 +52,16 @@ const productSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["Electronics", "Furniture", "Books", "Clothing"], // only these allowed
+      enum: [
+        "Laptops",
+        "Hand-Tools",
+        "Bikes",
+        "Cameras",
+        "Camera-Tools",
+        "Electronics",
+        "Skating-Tolls",
+        "Clothing",
+      ], // only these allowed
       required: [true, "Category is required"],
     },
 

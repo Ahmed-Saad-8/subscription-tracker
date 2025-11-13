@@ -27,8 +27,6 @@ app.use("/api/v1/products", productRouter);
 
 app.use(cors({ origin: "*", credentials: true }));
 
-app.use(errorMiddleware);
-
 app.get("/", (req, res) => {
   res.send("Welcome to portfolio API");
 });
@@ -38,5 +36,7 @@ app.listen(PORT, async () => {
 
   await connectToDatabase();
 });
+
+app.use(errorMiddleware);
 
 export default app;

@@ -4,6 +4,8 @@ import {
   getProducts,
   deleteProduct,
   getuserProducts,
+  getProduct,
+  updateProduct,
 } from "../controllers/product.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import authorize from "../middlewares/auth.middlewate.js";
@@ -26,6 +28,20 @@ productRouter.get("/getproduct", getProducts);
 
 productRouter.get("/product/:id", authorize, getuserProducts);
 
+productRouter.get("/thisproduct/:id", getProduct);
+
 productRouter.delete("/product/:id", authorize, deleteProduct);
+
+productRouter.put(
+  "/product/:id",
+  authorize,
+  upload.fields([
+    { name: "mainImage", maxCount: 1 },
+    { name: "firstImage", maxCount: 1 },
+    { name: "secondImage", maxCount: 1 },
+    { name: "thirdImage", maxCount: 1 },
+  ]),
+  updateProduct
+);
 
 export default productRouter;
