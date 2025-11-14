@@ -16,32 +16,7 @@ const productSchema = new mongoose.Schema(
       minlength: [50, "description must be at least 50 characters long"],
       maxlength: [800, "description must be at most 800 characters long"],
     },
-    startDate: {
-      type: Date,
-      default: Date.now,
-      validate: {
-        validator: function (value) {
-          return value >= new Date();
-        },
-        message: "Start date cannot be in the past",
-      },
 
-      immutable: true,
-      required: [true, "Description is required"],
-    },
-    endDate: {
-      type: Date,
-      default: Date.now,
-      validate: {
-        validator: function (value) {
-          return value >= this.startDate;
-        },
-        message: "End date must be after the start date",
-      },
-
-      immutable: true,
-      required: [true, "date is required"],
-    },
     pricePerHour: {
       type: Number,
       required: [true, "price is required"],

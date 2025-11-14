@@ -1,7 +1,6 @@
 // controllers/product.controller.js
 import Product from "../models/product.model.js";
 import cloudinary from "../config/cloudinaryConfig.js";
-
 import streamifier from "streamifier";
 
 export const postProduct = async (req, res, next) => {
@@ -221,8 +220,6 @@ export const updateProduct = async (req, res) => {
       "replacementValue",
       "category",
       "itemCondition",
-      "startDate",
-      "endDate",
       "city",
     ];
 
