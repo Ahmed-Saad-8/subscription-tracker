@@ -98,6 +98,7 @@ export const checkRequests = async (req, res, next) => {
     const requestsToUser = await Request.find({
       toUserId: userId,
     })
+      .populate({ path: "toUserId", model: "User", select: "name email" })
       .populate({ path: "fromUserId", model: "User", select: "name email" })
       .populate({
         path: "productId",
