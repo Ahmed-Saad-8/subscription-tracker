@@ -95,7 +95,7 @@ export const checkRequests = async (req, res, next) => {
     }
 
     // ✅ Find all requests sent TO the logged-in user
-    const requestsToUser = await Request.find({ toUserId: userId })
+    const requestsToUser = await Request.find({ fromUserId: userId })
       .populate({ path: "fromUserId", model: "User", select: "name email" }) // sender info
       .populate({ path: "toUserId", model: "User", select: "name email" }) // receiver info
       .populate({
