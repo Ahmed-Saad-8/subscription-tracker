@@ -5,6 +5,7 @@ import {
   checkRequests,
   postRequest,
   updateRequestStatus,
+  getRequestById,
 } from "../controllers/request.controller.js";
 
 const requestRouter = Router();
@@ -16,5 +17,7 @@ requestRouter.get("/request/:id", authorize, checkRequest);
 requestRouter.get("/checkrequest", authorize, checkRequests);
 
 requestRouter.patch("/updatestatus/:id", authorize, updateRequestStatus);
+
+requestRouter.get("/getrequest/:id", authorize, getRequestById);
 
 export default requestRouter;

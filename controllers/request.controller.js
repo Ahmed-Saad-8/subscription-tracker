@@ -62,12 +62,23 @@ export const checkRequest = async (req, res, next) => {
       return res.status(400).json({ requested: false, message: "Invalid IDs" });
     }
 
+    // Find the request made by the logged-in user for this product
     const existingRequest = await Request.findOne({
       fromUserId: new mongoose.Types.ObjectId(userId),
       productId: new mongoose.Types.ObjectId(productId),
-    });
+    })
+      .populate({ path: "toUserId", model: "User", select: "name email" }) // populate toUserId
+      .populate({ path: "fromUserId", model: "User", select: "name email" }) // optional, for consistency
+      .populate({
+        path: "productId",
+        model: "Product",
+        select: "name pricePerHour",
+      }); // optional
 
-    res.json({ requested: !!existingRequest });
+    res.json({
+      requested: !!existingRequest,
+      request: existingRequest || null, // return the full request with populated fields
+    });
   } catch (error) {
     next(error);
   }
@@ -120,6 +131,49 @@ export const updateRequestStatus = async (req, res, next) => {
     }
 
     res.json({ success: true, data: updatedRequest });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getRequestById = async (req, res, next) => {
+  try {
+    const { id: requestId } = req.params;
+
+    // 1) Validate request ID
+    if (!mongoose.Types.ObjectId.isValid(requestId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid request ID" });
+    }
+
+    // 2) Find the request and populate related data
+    const request = await Request.findById(requestId)
+      .populate({
+        path: "fromUserId",
+        model: "User",
+        select: "name email city mobileNumber",
+      })
+      .populate({
+        path: "toUserId",
+        model: "User",
+        select: "name email city mobileNumber",
+      })
+      .populate({
+        path: "productId",
+        model: "Product",
+        select: "name description pricePerHour mainImage owner",
+      });
+
+    // 3) Not found
+    if (!request) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Request not found" });
+    }
+
+    // 4) Success response
+    res.status(200).json({ success: true, data: request });
   } catch (error) {
     next(error);
   }

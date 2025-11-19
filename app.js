@@ -10,6 +10,7 @@ import cors from "cors";
 import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
 import productRouter from "./routes/product.routes.js";
 import requestRouter from "./routes/request.routes.js";
+import messageRouter from "./routes/message.route.js";
 
 const app = express();
 
@@ -28,6 +29,8 @@ app.use("/api/v1/subscriptions", subscriptionRouter);
 app.use("/api/v1/products", productRouter);
 
 app.use("/api/v1/requests", requestRouter);
+
+app.use("/api/v1/message", messageRouter);
 
 app.use(cors({ origin: "*", credentials: true }));
 
