@@ -17,7 +17,7 @@ requestRouter.get("/request/:id", authorize, checkRequest);
 
 requestRouter.get("/checkrequest", authorize, checkRequests);
 
-requestRouter.get("/checkrequestrorme", authorize, checkRequestsforme);
+requestRouter.get("/checkrequestforme", authorize, checkRequestsforme);
 
 requestRouter.patch("/updatestatus/:id", authorize, updateRequestStatus);
 
