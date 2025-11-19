@@ -86,7 +86,7 @@ export const checkRequest = async (req, res, next) => {
 
 export const checkRequests = async (req, res, next) => {
   try {
-    const userId = req.user._id; // the user we want to check requests for
+    const userId = req.user._id; // logged-in user
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res
@@ -94,17 +94,16 @@ export const checkRequests = async (req, res, next) => {
         .json({ success: false, message: "Invalid user ID" });
     }
 
-    // Find all requests sent TO this user
-    const requestsToUser = await Request.find({
-      toUserId: userId,
-    })
-      .populate({ path: "toUserId", model: "User", select: "name email" })
-      .populate({ path: "fromUserId", model: "User", select: "name email" })
+    // ✅ Find all requests sent TO the logged-in user
+    const requestsToUser = await Request.find({ toUserId: userId })
+      .populate({ path: "fromUserId", model: "User", select: "name email" }) // sender info
+      .populate({ path: "toUserId", model: "User", select: "name email" }) // receiver info
       .populate({
         path: "productId",
         model: "Product",
         select: "name pricePerHour",
-      });
+      }) // product info
+      .sort({ createdAt: -1 }); // optional: newest first
 
     res.status(200).json({ success: true, requests: requestsToUser });
   } catch (error) {
