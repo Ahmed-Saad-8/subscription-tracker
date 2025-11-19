@@ -3,7 +3,14 @@ import mongoose from "mongoose";
 
 export const postMessage = async (req, res, next) => {
   try {
-    const { productId, borrowerId, ownerId, message, userId } = req.body;
+    const { productId, borrowerId, ownerId, message, senderId } = req.body;
+
+    if (!senderId) {
+      return res.status(400).json({
+        success: false,
+        message: "senderId is missing",
+      });
+    }
 
     const conversationId = `${productId}_${borrowerId}_${ownerId}`;
 
@@ -11,13 +18,13 @@ export const postMessage = async (req, res, next) => {
       conversationId,
       borrowerId,
       ownerId,
+      productId,
       message,
-      senderId: userId, // <-- Important: logged user is the sender
+      senderId, // <--- مهم جداً
     });
 
     res.status(201).json({
       success: true,
-      message: "Message sent successfully",
       data: newMessage,
     });
   } catch (error) {
