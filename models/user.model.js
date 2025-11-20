@@ -67,6 +67,8 @@ const userSchema = new mongoose.Schema(
       type: String, // store image URL (for example, from Cloudinary or local path)
       required: [true, "ID image is required"],
     },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
   },
   {
     timestamps: true,

@@ -5,6 +5,9 @@ import User from "../models/user.model.js";
 import { JWT_EXPIRES_IN, JWT_SECRET } from "../config/env.js";
 import cloudinary from "../config/cloudinaryConfig.js";
 import streamifier from "streamifier";
+import crypto from "crypto";
+import sendEmail from "../utils/sendEmail.js";
+import resetPasswordEmail from "../templates/resetPasswordEmail.js";
 
 export const signUp = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -129,6 +132,91 @@ export const signIn = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+export const forgetPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(200).json({
+        message: "If this email exists, a reset link has been sent.",
+      });
+    }
+
+    // 1️⃣ توليد reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 دقائق
+    await user.save({ validateBeforeSave: false });
+
+    // 2️⃣ رابط إعادة تعيين الباسورد
+    const resetURL = `https://loop-it-two.vercel.app/reset-password/${resetToken}`;
+
+    // 3️⃣ توليد HTML باستخدام template
+    const html = resetPasswordEmail(resetURL, user.name);
+
+    // 4️⃣ إرسال الإيميل
+    await sendEmail({
+      email: user.email,
+      subject: "Password Reset Request",
+      html,
+    });
+
+    res.status(200).json({
+      message: "Reset link has been sent to your email.",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error sending reset email." });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    // 1) hash the received token
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    // 2) find user with this token and check if token not expired
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() }, // token not expired
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired reset token.",
+      });
+    }
+
+    // 3) hash the new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 4) update user's password and clear reset token fields
+    user.password = hashedPassword;
+    user.confirmPassword = hashedPassword; // optional, if you use confirmPassword
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Password has been reset successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Error resetting password. Try again later.",
+    });
   }
 };
 
