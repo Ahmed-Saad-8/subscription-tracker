@@ -11,6 +11,7 @@ import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
 import productRouter from "./routes/product.routes.js";
 import requestRouter from "./routes/request.routes.js";
 import messageRouter from "./routes/message.route.js";
+import favoriteRouter from "./routes/favorite.route.js";
 
 const app = express();
 
@@ -31,6 +32,8 @@ app.use("/api/v1/products", productRouter);
 app.use("/api/v1/requests", requestRouter);
 
 app.use("/api/v1/message", messageRouter);
+
+app.use("/api/v1/favorite", favoriteRouter);
 
 app.use(cors({ origin: "*", credentials: true }));
 
